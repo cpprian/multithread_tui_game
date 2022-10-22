@@ -1,4 +1,4 @@
-# ================= Server ======================
+# Server
 - thread_1: run game loop
 - tread_2: run network loop
     - run network loop (player sender)
@@ -13,7 +13,7 @@
 - if player has exited, delete player, but not game
 
 
-# ================= Client=============
+# Client
 -  thread_1: run game loop
 - thread_2: run network loop
     - player sender
