@@ -1,12 +1,16 @@
 # Server
 - thread_1: run game loop
-- tread_2: run network loop
+- tread_2: run network loop 
     - run network loop (player sender)
     - run network loop (player receiver)
     - listen for new connctions
     - listen for player exit
 - thread_3: run new beast
     - next beast needs to be spawned by new thread
+- thread_4: keyboard handler
+    - B/b - spawn new beast -> new thread
+    - c/t/T - add coin/treasure/big treasure
+    - Q/q - quit game
 
 
 - if error has occured, restart game and player

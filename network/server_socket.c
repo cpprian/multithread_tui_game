@@ -14,32 +14,41 @@ void serverSocketInit(struct server_socket* ss) {
     listen(ss->fd, 5);
 }
 
-int serverSocketAccept(struct server_socket* ss) {
+void serverSocketAccept(void* ss) {
+    struct server_socket* serverSocket = (struct server_socket*)ss;
+    struct client_handler_thread clientHandlerThread;
     struct sockaddr_in clientAddress;
     socklen_t clientAddressLength = sizeof(clientAddress);
 
-    int clientSocket = accept(ss->fd, (struct sockaddr *) &clientAddress, &clientAddressLength);
-    error_info(clientSocket < 0, E_ACCEPT_SOCKET, NULL, NULL);
+    int clientSocket = accept(serverSocket->fd, (struct sockaddr *) &clientAddress, &clientAddressLength);
+    error_info(clientSocket < 0, E_ACCEPT_SOCKET, closeThread, NULL);
 
     if (clientSocket > 0) {
-        ss->active_clients++;
+        pthread_mutex_lock(&serverSocket->mtx);
+        serverSocket->active_clients++;
+
+        clientHandlerThread.socket = clientSocket;
+        clientHandlerThread.port = ntohs(clientAddress.sin_port);
+
+        pthread_mutex_unlock(&serverSocket->mtx);
     }
 
-    return clientSocket;
+    pthread_exit(&clientHandlerThread);
 }
 
-void serverSocketListen(void* ss) {
-    struct server_socket* serverSocket = (struct server_socket*) ss;
+void serverSocketListen(struct server_socket* serverSocket) {
+    while (serverSocket != NULL) {
+        struct client_handler_thread* newPlayer = NULL;
+        pthread_create(&serverSocket->pth_listen, NULL, serverSocketAccept, (void*)serverSocket);
+        pthread_join(serverSocket->pth_listen, &newPlayer);
 
+        if (newPlayer == NULL) {
+            continue;
+        }
 
-    // TODO: create threads
-    // TODO: clean up threads
-    // TODO: load map on server
-    while (serverSocket->active_clients < MAX_CLIENTS) {
-        int clientSocket = serverSocketAccept(serverSocket);
-        if (clientSocket > 0) {
-            struct client_socket* clientSocketStruct = createClient(HOST, PORT);
-            printf("Client connected: %d\n", clientSocketStruct->fd);
+        // after accept new client connection, create new thread to handle client
+        if (serverSocket != NULL) {
+            pthread_create(&newPlayer->pth_player, NULL, clientHandler, (void*)newPlayer);
         }
     }
 }
@@ -55,9 +64,12 @@ struct sockaddr_in createServerAddress(int port) {
 
 struct server_socket* createServer(int port) {
     struct server_socket* ss = (struct server_socket*)calloc(1, sizeof(struct server_socket));
+    error_exit(ss == NULL, E_ALLOC, NULL, NULL);
+
     ss->port = port;
     ss->active_clients = 0;
     ss->addr = createServerAddress(port);
+
     serverSocketInit(ss);
     return ss;
 }

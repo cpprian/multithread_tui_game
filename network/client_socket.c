@@ -30,6 +30,7 @@ void clientSocketConnect(struct client_socket* client_socket) {
 
 struct client_socket* createClient(const char* server_ip, int server_port) {
     struct client_socket* client_socket = (struct client_socket*)calloc(1, sizeof(struct client_socket));
+    error_exit(client_socket == NULL, E_ALLOC, NULL, NULL);
     clientSocketInit(client_socket, server_ip, server_port);
     return client_socket;
 }

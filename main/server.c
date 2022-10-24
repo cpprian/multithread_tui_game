@@ -4,10 +4,21 @@
 int main(int argc, char** argv) {
     struct server_socket* ss = createServer(PORT);
 
-    while(1) {
-        serverSocketListen((void*)ss);
-        
-    }
+    // TODO: load map
+
+
+    // TODO: game thread loop
+
+
+    // TODO: keyboard handler loop
+
+
+    // listen for a new connection -> main thread
+    serverSocketListen(ss);
+
+    wait(NULL);
+
     serverSocketClose(ss);
-    return 0;
+    printf("Server closed\n");
+    return EXIT_SUCCESS;
 }

@@ -6,5 +6,5 @@ int main(int argc, char** argv) {
 
     printf("socket id: %d", cs->fd);
     clientSocketClose(cs);
-    return 0;
+    return EXIT_SUCCESS;
 }

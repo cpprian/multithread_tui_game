@@ -3,6 +3,8 @@
 
 // ============== BASIC MESSAGES ==============
 #define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
+#define E_ALLOC "Error allocating memory"
 #define MSG_ERROR_INFO "Error info: "
 #define MSG_ERROR_EXIT "Error exit: "
 

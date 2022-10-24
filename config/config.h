@@ -15,7 +15,7 @@
 
 // ============ THREAD INCLUDE =============
 #include <pthread.h>
-
+#include "../util/thread_util.h"
 
 // ============== NETWORK CONFIG =============
 #define HOST "localhost"
