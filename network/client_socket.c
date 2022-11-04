@@ -1,7 +1,7 @@
 #include "client_socket.h"
 
 
-void clientSocketInit(struct client_socket* client_socket, const char* server_ip, int server_port) {
+void clientSocketInit(struct ClientSocket* client_socket, const char* server_ip, int server_port) {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     error_exit(clientSocket < 0, E_OPEN_SOCKET, freeClient, (void*)client_socket);
 
@@ -20,7 +20,7 @@ void clientSocketInit(struct client_socket* client_socket, const char* server_ip
     client_socket->server_address = serverAddress;
 }
 
-void clientSocketConnect(struct client_socket* client_socket) {
+void clientSocketConnect(struct ClientSocket* client_socket) {
     int connection = connect(
         client_socket->fd, 
         (struct sockaddr*) &(client_socket->server_address), 
@@ -28,20 +28,26 @@ void clientSocketConnect(struct client_socket* client_socket) {
     error_exit(connection < 0, E_CONNECT_SOCKET, clientSocketClose, (void*)client_socket);
 }
 
-struct client_socket* createClient(const char* server_ip, int server_port) {
-    struct client_socket* client_socket = (struct client_socket*)calloc(1, sizeof(struct client_socket));
+struct ClientSocket* createClient(const char* server_ip, int server_port) {
+    struct ClientSocket* client_socket = (struct ClientSocket*)calloc(1, sizeof(struct ClientSocket));
     error_exit(client_socket == NULL, E_ALLOC, NULL, NULL);
     clientSocketInit(client_socket, server_ip, server_port);
     return client_socket;
 }
 
 void freeClient(void* cs) {
-    struct client_socket* client_socket = (struct client_socket*)cs;
+    struct ClientSocket* client_socket = (struct ClientSocket*)cs;
     free(client_socket);
 }
 
 void clientSocketClose(void* cs) {
-    struct client_socket* client_socket = (struct client_socket*)cs;
+    struct ClientSocket* client_socket = (struct ClientSocket*)cs;
     close(client_socket->fd);
     freeClient(cs);
+}
+
+int sendRequest(int socket, ACTION action, TYPE playerType) {
+    char buffer[2] = {action + '0', playerType + '0'};
+
+    return send(socket, buffer, sizeof(buffer), 0);
 }
