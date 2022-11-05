@@ -78,6 +78,10 @@ struct GameManager{
     int board_height;
     int board_width;
     int max_clients;
+    int active_clients;
+    int active_monsters;
+
+    pthread_mutex_t mutex;
 
     struct GameElement** board;
 

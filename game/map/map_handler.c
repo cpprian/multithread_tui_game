@@ -2,14 +2,11 @@
 
 void findEmptyPosition(struct GameManager* game, int* positionX, int* positionY) {
     
-    // TODO: random position
-    for (int y = 0; y < game->board_height; y++) {
-        for (int x = 0; x < game->board_width; x++) {
-            if (game->board[y][x].type == ELEMENT_SPACE) {
-                *positionX = x;
-                *positionY = y;
-                return;
-            }
+    while (1) {
+        *positionX = rand() % game->board_height;
+        *positionY = rand() % game->board_width;
+        if (game->board[*positionX][*positionY].type == ELEMENT_SPACE) {
+            break;
         }
     }
 }

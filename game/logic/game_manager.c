@@ -5,6 +5,8 @@ struct GameManager* createGameManager(int max_clients, int board_height, int boa
     game->max_clients = max_clients;
     game->board_height = board_height;
     game->board_width = board_width;
+    game->active_clients = 0;
+    game->active_monsters = 0;
 
     game->board = (struct GameElement**)calloc(game->board_height, sizeof(struct GameElement*));
     for (int i = 0; i < board_height; i++) {
@@ -24,8 +26,8 @@ void removeGameManager(struct GameManager* game) {
 void addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client, 
                     struct PlayerData* player, TYPE playerType, int* valid) 
 {
-    if ((playerType == TYPE_PLAYER && isFullPlayer(game)) ||
-        (playerType == TYPE_MONSTER && isFullMonster(game))) 
+    if ((playerType == TYPE_PLAYER && game->active_clients == 4) || 
+        (playerType == TYPE_MONSTER && game->active_monsters == 4)) 
     {
         *valid = 0;
         sendResponse(client->socket, CONNECTION_FULL);
@@ -43,6 +45,18 @@ void addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client,
     int positionY;
     findEmptyPosition(game, &positionX, &positionY);
 
+    if (playerType == TYPE_PLAYER) {
+        pthread_mutex_lock(&game->mutex);
+        game->active_clients++;
+        pthread_mutex_unlock(&game->mutex);
+        game->board[positionX][positionY].type = (ELEMENT)game->active_clients;
+    } else {
+        pthread_mutex_lock(&game->mutex);
+        game->active_monsters++;
+        pthread_mutex_unlock(&game->mutex);
+        game->board[positionX][positionY].type = ELEMENT_MONSTER;
+    }
+
     player->position_x = positionX;
     player->position_y = positionY;
     player->delay = 0;
@@ -51,8 +65,6 @@ void addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client,
     player->score_campsite = 0;
     player->playerType = playerType;
     player->thr = client->pth_player;
-
-    game->board[positionX][positionY].type = ELEMENT_PLAYER_1;
 
     sendResponse(client->socket, CONNECTION_SUCCESS);
 }
@@ -118,24 +130,4 @@ struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType) {
     }
 
     return NULL;
-}
-
-int isFullPlayer(struct GameManager* game) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (game->players[i] == NULL) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-int isFullMonster(struct GameManager* game) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (game->monsters[i] == NULL) {
-            return 1;
-        }
-    }
-
-    return 0;
 }

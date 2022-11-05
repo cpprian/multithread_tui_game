@@ -9,8 +9,6 @@ struct GameManager* createGameManager(int max_clients, int board_height, int boa
 void removeGameManager(struct GameManager* game);
 
 struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType);
-int isFullPlayer(struct GameManager* game);
-int isFullMonster(struct GameManager* game);
 
 // ============== CLIENT HANDLER API ===============
 void addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player, 
