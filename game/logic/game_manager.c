@@ -23,22 +23,21 @@ void removeGameManager(struct GameManager* game) {
     free(game);
 }
 
-void addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client, 
-                    struct PlayerData* player, TYPE playerType, int* valid) 
+struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client, TYPE playerType, int* valid) 
 {
     if ((playerType == TYPE_PLAYER && game->active_clients == 4) || 
         (playerType == TYPE_MONSTER && game->active_monsters == 4)) 
     {
         *valid = 0;
         sendResponse(client->socket, CONNECTION_FULL);
-        return;
+        return NULL;
     } 
 
-    player = returnPlayer(game, playerType);
+    struct PlayerData* player = returnPlayer(game, playerType);
     if (player == NULL) {
         *valid = 0;
         sendResponse(client->socket, CONNECTION_FULL);
-        return;
+        return NULL;
     }
 
     int positionX;
@@ -67,6 +66,7 @@ void addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client,
     player->thr = client->pth_player;
 
     sendResponse(client->socket, CONNECTION_SUCCESS);
+    return player;
 }
 
 void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, TYPE playerType) {

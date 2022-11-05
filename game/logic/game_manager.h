@@ -11,8 +11,7 @@ void removeGameManager(struct GameManager* game);
 struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType);
 
 // ============== CLIENT HANDLER API ===============
-void addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player, 
-                    TYPE playerType, int* valid);
+struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerThread* client, TYPE playerType, int* valid);
 void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, TYPE playerType);
 
 // TODO: implement
