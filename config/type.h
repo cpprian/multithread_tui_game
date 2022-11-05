@@ -25,17 +25,6 @@ typedef enum ACTION{
     ACTION_MOVE_RIGHT,
 } ACTION;
 
-typedef enum COLOR{
-    BLACK=1,
-    RED,
-    GREEN,
-    YELLOW,
-    BLUE,
-    MAGENTA,
-    CYAN,
-    WHITE
-} COLOR;  
-
 typedef enum ELEMENT{
     ELEMENT_PLAYER_1=1,
     ELEMENT_PLAYER_2,
