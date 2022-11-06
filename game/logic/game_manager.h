@@ -16,10 +16,6 @@ void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, 
 
 // TODO: implement
 void sendMap(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player);
-
-void movePlayerUp(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player);
-void movePlayerDown(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player);
-void movePlayerLeft(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player);
-void movePlayerRight(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player);
+void movePlayer(struct GameManager* game, struct PlayerData* player, int positionX, int positionY);
 
 #endif

@@ -118,10 +118,8 @@ void* clientHandler(void* args) {
             case ACTION_JOIN: {
                 player = addNewPlayer(gameManager, handleClient, playerType, &valid);
                 if (player == NULL) {
-                    printf("Player is NULLLLLLLLLLLLLLLLLLLLLL\n");
-                    break;
+                    valid = 0;
                 }
-                printf("Player %d joined the game\n", player->playerType);
                 break;
             }
             case ACTION_LEAVE: {
@@ -134,26 +132,23 @@ void* clientHandler(void* args) {
                 break;
             }
             case ACTION_MOVE_UP: {
-                if (player == NULL) {
-                    printf("Player is NULL\n");
-                    break;
-                } else {
-                    printf("Player is not NULL\n");
-                    printf("Player type: %d, position: %d %d\n", player->playerType, player->position_x, player->position_y);
-                }
-                movePlayerUp(gameManager, handleClient, player);
+                // movePlayerUp(gameManager, handleClient, player);
+                movePlayer(gameManager, player, 0, -1);
                 break;
             }
             case ACTION_MOVE_DOWN: {
-                movePlayerDown(gameManager, handleClient, player);
+                // movePlayerDown(gameManager, handleClient, player);
+                movePlayer(gameManager, player, 0, 1);
                 break;
             }
             case ACTION_MOVE_LEFT: {
-                movePlayerLeft(gameManager, handleClient, player);
+                // movePlayerLeft(gameManager, handleClient, player);
+                movePlayer(gameManager, player, -1, 0);
                 break;
             }
             case ACTION_MOVE_RIGHT: {
-                movePlayerRight(gameManager, handleClient, player);
+                // movePlayerRight(gameManager, handleClient, player);
+                movePlayer(gameManager, player, 1, 0);
                 break;
             }
             default:

@@ -9,6 +9,7 @@ int main(int argc, char** argv) {
     sendRequest(cs->fd, ACTION_JOIN, TYPE_PLAYER);
     recv(cs->fd, buffer, sizeof(buffer), 0);
     int conn = buffer[0] - '0';
+    printf("Connection: %d", conn);
     if (conn == CONNECTION_FULL) {
         printf("Server is full\n");
         clientSocketClose(cs);
@@ -19,6 +20,8 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    // TODO: render map thread
+
     struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -26,27 +29,27 @@ int main(int argc, char** argv) {
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
     int valid = 1;
-    while(valid) {
+    while(valid > 0) {
         unsigned char c = getchar();
         switch(c) {
             case 'w': {
                 printf("Up\n");
-                sendRequest(cs->fd, ACTION_MOVE_UP, TYPE_PLAYER);
+                valid = sendRequest(cs->fd, ACTION_MOVE_UP, TYPE_PLAYER);
                 break;
             }
             case 's': {
                 printf("Down\n");
-                sendRequest(cs->fd, ACTION_MOVE_DOWN, TYPE_PLAYER);
+                valid = sendRequest(cs->fd, ACTION_MOVE_DOWN, TYPE_PLAYER);
                 break;
             }
             case 'a': {
                 printf("Left\n");
-                sendRequest(cs->fd, ACTION_MOVE_LEFT, TYPE_PLAYER);
+                valid = sendRequest(cs->fd, ACTION_MOVE_LEFT, TYPE_PLAYER);
                 break;
             }
             case 'd': {
                 printf("Right\n");
-                sendRequest(cs->fd, ACTION_MOVE_RIGHT, TYPE_PLAYER);
+                valid = sendRequest(cs->fd, ACTION_MOVE_RIGHT, TYPE_PLAYER);
                 break;
             }
             case 'q': {
@@ -59,6 +62,7 @@ int main(int argc, char** argv) {
                 break;
         }
     }
+    
     clientSocketClose(cs);
     printf("Client closed\n");
     return EXIT_SUCCESS;

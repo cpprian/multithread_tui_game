@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
     struct GameManager* game = createGameManager(MAX_CLIENTS, BOARD_HEIGHT, BOARD_WIDTH);
     loadMap(game, "./static/map.txt");
 
-    // game thread loop
+    // print board -> game thread
     pthread_create(&(ss->pth_game), NULL, printBoard, (void*)game);
 
     // TODO: keyboard handler loop
@@ -19,6 +19,5 @@ int main(int argc, char** argv) {
 
     removeGameManager(game);
     serverSocketClose(ss);
-    printf("Server closed\n");
     return EXIT_SUCCESS;
 }

@@ -95,44 +95,23 @@ void sendMap(struct GameManager* game, struct ClientHandlerThread* client, struc
     
 }
 
-void movePlayerUp(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
-    if (game->board[player->position_y - 1][player->position_x].type == ELEMENT_WALL) {
+void movePlayer(struct GameManager*game, struct PlayerData* player, int positionX, int positionY) {
+    if (game->board[player->position_y + positionY][player->position_x + positionX].type == ELEMENT_WALL) {
         return;
     }
 
     game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
-    game->board[player->position_y - 1][player->position_x].type = (ELEMENT)player->playerType;
-    player->position_y--;
-}
+    game->board[player->position_y + positionY][player->position_x + positionX].type = (ELEMENT)player->playerType;
 
-void movePlayerDown(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
-    if (game->board[player->position_y + 1][player->position_x].type == ELEMENT_WALL) {
-        return;
+    if (positionX == 1) {
+        player->position_x++;
+    } else if (positionX == -1) {
+        player->position_x--;
+    } else if (positionY == 1) {
+        player->position_y++;
+    } else if (positionY == -1) {
+        player->position_y--;
     }
-
-    game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
-    game->board[player->position_y + 1][player->position_x].type = (ELEMENT)player->playerType;
-    player->position_y++;
-}
-
-void movePlayerLeft(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
-    if (game->board[player->position_y][player->position_x - 1].type == ELEMENT_WALL) {
-        return;
-    }
-
-    game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
-    game->board[player->position_y][player->position_x - 1].type = (ELEMENT)player->playerType;
-    player->position_x--;
-}
-
-void movePlayerRight(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
-    if (game->board[player->position_y][player->position_x + 1].type == ELEMENT_WALL) {
-        return;
-    }
-
-    game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
-    game->board[player->position_y][player->position_x + 1].type = (ELEMENT)player->playerType;
-    player->position_x++;
 }
 
 struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType) {
