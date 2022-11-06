@@ -2,6 +2,7 @@
 #include "../game/map/map_handler.h"
 
 int main(int argc, char** argv) {
+    srand(time(NULL));  
     struct ServerSocket* ss = createServer(PORT);
 
     struct GameManager* game = createGameManager(MAX_CLIENTS, BOARD_HEIGHT, BOARD_WIDTH);

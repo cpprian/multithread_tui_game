@@ -119,7 +119,9 @@ void* clientHandler(void* args) {
                 player = addNewPlayer(gameManager, handleClient, playerType, &valid);
                 if (player == NULL) {
                     printf("Player is NULLLLLLLLLLLLLLLLLLLLLL\n");
+                    break;
                 }
+                printf("Player %d joined the game\n", player->playerType);
                 break;
             }
             case ACTION_LEAVE: {
@@ -139,19 +141,19 @@ void* clientHandler(void* args) {
                     printf("Player is not NULL\n");
                     printf("Player type: %d, position: %d %d\n", player->playerType, player->position_x, player->position_y);
                 }
-                movePlayerUp(handleClient, player);
+                movePlayerUp(gameManager, handleClient, player);
                 break;
             }
             case ACTION_MOVE_DOWN: {
-                movePlayerDown(handleClient, player);
+                movePlayerDown(gameManager, handleClient, player);
                 break;
             }
             case ACTION_MOVE_LEFT: {
-                movePlayerLeft(handleClient, player);
+                movePlayerLeft(gameManager, handleClient, player);
                 break;
             }
             case ACTION_MOVE_RIGHT: {
-                movePlayerRight(handleClient, player);
+                movePlayerRight(gameManager, handleClient, player);
                 break;
             }
             default:

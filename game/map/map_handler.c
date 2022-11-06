@@ -3,9 +3,9 @@
 void findEmptyPosition(struct GameManager* game, int* positionX, int* positionY) {
     
     while (1) {
-        *positionX = rand() % game->board_height;
-        *positionY = rand() % game->board_width;
-        if (game->board[*positionX][*positionY].type == ELEMENT_SPACE) {
+        *positionX = rand() % game->board_width;
+        *positionY = rand() % game->board_height;
+        if (game->board[*positionY][*positionX].type == ELEMENT_SPACE) {
             break;
         }
     }
@@ -112,7 +112,7 @@ void* printBoard(void* g) {
     init_pair(ELEMENT_PLAYER_3, COLOR_WHITE, COLOR_MAGENTA);
     init_pair(ELEMENT_PLAYER_4, COLOR_WHITE, COLOR_MAGENTA);
     init_pair(ELEMENT_MONSTER, COLOR_RED, COLOR_WHITE);
-    init_pair(ELEMENT_CAMPSITE, COLOR_YELLOW, COLOR_GREEN);
+    init_pair(ELEMENT_CAMPSITE, COLOR_WHITE, COLOR_BLUE);
     init_pair(ELEMENT_BUSH, COLOR_GREEN, COLOR_BLACK);
     init_pair(ELEMENT_SPACE, COLOR_BLACK, COLOR_BLACK);
     init_pair(ELEMENT_WALL, COLOR_WHITE, COLOR_WHITE);
@@ -126,14 +126,16 @@ void* printBoard(void* g) {
         for (int y = 0; y < game->board_height; y++) {
             for (int x = 0; x < game->board_width; x++) {
                 attron(COLOR_PAIR(game->board[y][x].type));
+                attron(A_BOLD);
                 mvprintw(y+5, x+5, "%s", returnElementTypeChar(game->board[y][x].type));
+                attroff(A_BOLD);
                 attroff(COLOR_PAIR(game->board[y][x].type));
             }
         }
 
         // clear screen
         refresh();
-        sleep(1);
+        usleep(50000);
         clear();
     }
     endwin();

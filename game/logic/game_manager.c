@@ -48,12 +48,12 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
         pthread_mutex_lock(&game->mutex);
         game->active_clients++;
         pthread_mutex_unlock(&game->mutex);
-        game->board[positionX][positionY].type = (ELEMENT)game->active_clients;
+        game->board[positionY][positionX].type = (ELEMENT)game->active_clients;
     } else {
         pthread_mutex_lock(&game->mutex);
         game->active_monsters++;
         pthread_mutex_unlock(&game->mutex);
-        game->board[positionX][positionY].type = ELEMENT_MONSTER;
+        game->board[positionY][positionX].type = ELEMENT_MONSTER;
     }
 
     player->position_x = positionX;
@@ -62,7 +62,7 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
     player->deaths = 0;
     player->score_pocket = 0;
     player->score_campsite = 0;
-    player->playerType = playerType;
+    player->playerType = (ELEMENT)game->active_clients;
     player->thr = client->pth_player;
 
     sendResponse(client->socket, CONNECTION_SUCCESS);
@@ -95,20 +95,44 @@ void sendMap(struct GameManager* game, struct ClientHandlerThread* client, struc
     
 }
 
-void movePlayerUp(struct ClientHandlerThread* client, struct PlayerData* player) {
+void movePlayerUp(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
+    if (game->board[player->position_y - 1][player->position_x].type == ELEMENT_WALL) {
+        return;
+    }
 
+    game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
+    game->board[player->position_y - 1][player->position_x].type = (ELEMENT)player->playerType;
+    player->position_y--;
 }
 
-void movePlayerDown(struct ClientHandlerThread* client, struct PlayerData* player) {
+void movePlayerDown(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
+    if (game->board[player->position_y + 1][player->position_x].type == ELEMENT_WALL) {
+        return;
+    }
 
+    game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
+    game->board[player->position_y + 1][player->position_x].type = (ELEMENT)player->playerType;
+    player->position_y++;
 }
 
-void movePlayerLeft(struct ClientHandlerThread* client, struct PlayerData* player) {
+void movePlayerLeft(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
+    if (game->board[player->position_y][player->position_x - 1].type == ELEMENT_WALL) {
+        return;
+    }
 
+    game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
+    game->board[player->position_y][player->position_x - 1].type = (ELEMENT)player->playerType;
+    player->position_x--;
 }
 
-void movePlayerRight(struct ClientHandlerThread* client, struct PlayerData* player) {
+void movePlayerRight(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) {
+    if (game->board[player->position_y][player->position_x + 1].type == ELEMENT_WALL) {
+        return;
+    }
 
+    game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
+    game->board[player->position_y][player->position_x + 1].type = (ELEMENT)player->playerType;
+    player->position_x++;
 }
 
 struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType) {
