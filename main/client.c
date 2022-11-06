@@ -20,16 +20,18 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    // TODO: render map thread
-
     struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
     newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
+    int* isServerRunning = (int*)calloc(1, sizeof(int));
+    *isServerRunning = 1;
+    // TODO: render map thread
+
     int valid = 1;
-    while(valid > 0) {
+    while(valid > 0 && *isServerRunning) {
         unsigned char c = getchar();
         switch(c) {
             case 'w': {
@@ -63,6 +65,7 @@ int main(int argc, char** argv) {
         }
     }
     
+    free(isServerRunning);
     clientSocketClose(cs);
     printf("Client closed\n");
     return EXIT_SUCCESS;

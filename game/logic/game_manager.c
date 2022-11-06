@@ -40,30 +40,32 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
         return NULL;
     }
 
-    int positionX;
-    int positionY;
-    findEmptyPosition(game, &positionX, &positionY);
+    player->delay = 0;
+    player->deaths = 0;
+    player->score_pocket = 0;
+    player->score_campsite = 0;
+    player->thr = client->pth_player;
 
     if (playerType == TYPE_PLAYER) {
         pthread_mutex_lock(&game->mutex);
         game->active_clients++;
         pthread_mutex_unlock(&game->mutex);
-        game->board[positionY][positionX].type = (ELEMENT)game->active_clients;
+
+        player->playerElement = (ELEMENT)game->active_clients;
+        setPlayerCordinate(player);
+        game->board[player->position_y][player->position_x].type = player->playerElement;
     } else {
         pthread_mutex_lock(&game->mutex);
         game->active_monsters++;
         pthread_mutex_unlock(&game->mutex);
-        game->board[positionY][positionX].type = ELEMENT_MONSTER;
-    }
 
-    player->position_x = positionX;
-    player->position_y = positionY;
-    player->delay = 0;
-    player->deaths = 0;
-    player->score_pocket = 0;
-    player->score_campsite = 0;
-    player->playerType = (ELEMENT)game->active_clients;
-    player->thr = client->pth_player;
+        int positionX;
+        int positionY;
+        findEmptyPosition(game, &positionX, &positionY);
+        player->position_x = positionX;
+        player->position_y = positionY;
+        game->board[player->position_y][player->position_x].type = ELEMENT_MONSTER;
+    }
 
     sendResponse(client->socket, CONNECTION_SUCCESS);
     return player;
@@ -101,17 +103,10 @@ void movePlayer(struct GameManager*game, struct PlayerData* player, int position
     }
 
     game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
-    game->board[player->position_y + positionY][player->position_x + positionX].type = (ELEMENT)player->playerType;
 
-    if (positionX == 1) {
-        player->position_x++;
-    } else if (positionX == -1) {
-        player->position_x--;
-    } else if (positionY == 1) {
-        player->position_y++;
-    } else if (positionY == -1) {
-        player->position_y--;
-    }
+    player->position_x += positionX;
+    player->position_y += positionY;
+    game->board[player->position_y][player->position_x].type = player->playerElement;
 }
 
 struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType) {

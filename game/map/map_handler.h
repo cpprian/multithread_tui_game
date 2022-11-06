@@ -5,6 +5,7 @@
 #include "ncurses.h"
 
 void findEmptyPosition(struct GameManager* game, int* positionX, int* positionY);
+void setPlayerCordinate(struct PlayerData* player);
 
 void loadMap(struct GameManager* game, char* filename);
 void* printBoard(void* game);

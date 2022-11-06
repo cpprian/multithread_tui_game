@@ -59,4 +59,13 @@
 #define COLOR_CYAN        6
 #define COLOR_WHITE       7
 
+#define PLAYER_1_X      37
+#define PLAYER_1_Y      15
+#define PLAYER_2_X      16
+#define PLAYER_2_Y      21
+#define PLAYER_3_X      4
+#define PLAYER_3_Y      3
+#define PLAYER_4_X      40
+#define PLAYER_4_Y      5
+
 #endif // CONFIG_H

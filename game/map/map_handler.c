@@ -11,6 +11,22 @@ void findEmptyPosition(struct GameManager* game, int* positionX, int* positionY)
     }
 }
 
+void setPlayerCordinate(struct PlayerData* player) {
+    if (player->playerElement == ELEMENT_PLAYER_1) {
+        player->position_x = PLAYER_1_X;
+        player->position_y = PLAYER_1_Y;
+    } else if (player->playerElement == ELEMENT_PLAYER_2) {
+        player->position_x = PLAYER_2_X;
+        player->position_y = PLAYER_2_Y;
+    } else if (player->playerElement == ELEMENT_PLAYER_3) {
+        player->position_x = PLAYER_3_X;
+        player->position_y = PLAYER_3_Y;
+    } else if (player->playerElement == ELEMENT_PLAYER_4) {
+        player->position_x = PLAYER_4_X;
+        player->position_y = PLAYER_4_Y;
+    } 
+}
+
 void loadMap(struct GameManager* game, char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
