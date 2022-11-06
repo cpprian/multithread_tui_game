@@ -19,6 +19,7 @@ void removeGameManager(struct GameManager* game) {
     for (int i = 0; i < game->board_height; i++) {
         free(game->board[i]);
     }
+
     free(game->board);
     free(game);
 }
@@ -51,7 +52,6 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
         game->active_clients++;
         pthread_mutex_unlock(&game->mutex);
 
-        player->playerElement = (ELEMENT)game->active_clients;
         setPlayerCordinate(player);
         game->board[player->position_y][player->position_x].type = player->playerElement;
     } else {
@@ -71,12 +71,41 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
     return player;
 }
 
+struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType) {
+
+    if (playerType == TYPE_PLAYER) {
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            if (game->players[i] == NULL) {
+                game->players[i] = (struct PlayerData*)calloc(1, sizeof(struct PlayerData));
+                game->players[i]->playerElement = (ELEMENT)(i+1);
+                return game->players[i];
+            }
+        }
+    } else if (playerType == TYPE_MONSTER) {
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            if (game->monsters[i] == NULL) {
+                game->monsters[i] = (struct PlayerData*)calloc(1, sizeof(struct PlayerData));
+                return game->monsters[i];
+            }
+        }
+    }
+
+    return NULL;
+}
+
 void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, TYPE playerType) {
+
     if (playerType == TYPE_PLAYER) {
         for (int i = 0; i < MAX_CLIENTS; i++) {
             if (game->players[i] != NULL && game->players[i]->thr == client->pth_player) {
+                game->board[game->players[i]->position_y][game->players[i]->position_x].type = ELEMENT_SPACE;
+
                 free(game->players[i]);
                 game->players[i] = NULL;
+
+                pthread_mutex_lock(&game->mutex);
+                game->active_clients--;
+                pthread_mutex_unlock(&game->mutex);
                 sendResponse(client->socket, CONNECTION_DISCONNECTED);
                 return;
             }
@@ -109,23 +138,3 @@ void movePlayer(struct GameManager*game, struct PlayerData* player, int position
     game->board[player->position_y][player->position_x].type = player->playerElement;
 }
 
-struct PlayerData* returnPlayer(struct GameManager* game, TYPE playerType) {
-
-    if (playerType == TYPE_PLAYER) {
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (game->players[i] == NULL) {
-                game->players[i] = (struct PlayerData*)calloc(1, sizeof(struct PlayerData));
-                return game->players[i];
-            }
-        }
-    } else if (playerType == TYPE_MONSTER) {
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (game->monsters[i] == NULL) {
-                game->monsters[i] = (struct PlayerData*)calloc(1, sizeof(struct PlayerData));
-                return game->monsters[i];
-            }
-        }
-    }
-
-    return NULL;
-}

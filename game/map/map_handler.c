@@ -21,7 +21,7 @@ void setPlayerCordinate(struct PlayerData* player) {
     } else if (player->playerElement == ELEMENT_PLAYER_3) {
         player->position_x = PLAYER_3_X;
         player->position_y = PLAYER_3_Y;
-    } else if (player->playerElement == ELEMENT_PLAYER_4) {
+    } else {
         player->position_x = PLAYER_4_X;
         player->position_y = PLAYER_4_Y;
     } 

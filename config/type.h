@@ -47,7 +47,6 @@ struct PlayerData {
     int position_y;
 
     int delay;
-
     int deaths;
 
     int score_pocket;

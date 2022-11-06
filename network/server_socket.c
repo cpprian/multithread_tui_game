@@ -132,22 +132,18 @@ void* clientHandler(void* args) {
                 break;
             }
             case ACTION_MOVE_UP: {
-                // movePlayerUp(gameManager, handleClient, player);
                 movePlayer(gameManager, player, 0, -1);
                 break;
             }
             case ACTION_MOVE_DOWN: {
-                // movePlayerDown(gameManager, handleClient, player);
                 movePlayer(gameManager, player, 0, 1);
                 break;
             }
             case ACTION_MOVE_LEFT: {
-                // movePlayerLeft(gameManager, handleClient, player);
                 movePlayer(gameManager, player, -1, 0);
                 break;
             }
             case ACTION_MOVE_RIGHT: {
-                // movePlayerRight(gameManager, handleClient, player);
                 movePlayer(gameManager, player, 1, 0);
                 break;
             }
