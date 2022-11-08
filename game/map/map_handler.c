@@ -127,7 +127,7 @@ void* printBoard(void* g) {
     init_pair(ELEMENT_PLAYER_2, COLOR_WHITE, COLOR_MAGENTA);
     init_pair(ELEMENT_PLAYER_3, COLOR_WHITE, COLOR_MAGENTA);
     init_pair(ELEMENT_PLAYER_4, COLOR_WHITE, COLOR_MAGENTA);
-    init_pair(ELEMENT_MONSTER, COLOR_RED, COLOR_WHITE);
+    init_pair(ELEMENT_MONSTER, COLOR_RED, COLOR_BLACK);
     init_pair(ELEMENT_CAMPSITE, COLOR_WHITE, COLOR_BLUE);
     init_pair(ELEMENT_BUSH, COLOR_GREEN, COLOR_BLACK);
     init_pair(ELEMENT_SPACE, COLOR_BLACK, COLOR_BLACK);
@@ -137,7 +137,7 @@ void* printBoard(void* g) {
     init_pair(ELEMENT_TREASURE, COLOR_WHITE, COLOR_YELLOW);
     init_pair(ELEMENT_DROPPED, COLOR_WHITE, COLOR_YELLOW);
 
-    while (game != NULL) {
+    while (game->end_game) {
         // print map ncurses
         for (int y = 0; y < game->board_height; y++) {
             for (int x = 0; x < game->board_width; x++) {
@@ -155,6 +155,5 @@ void* printBoard(void* g) {
         clear();
     }
     endwin();
-    printf("Game closed\n");
     return NULL;
 }

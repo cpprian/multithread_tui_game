@@ -60,6 +60,7 @@ struct PlayerData {
 
 struct GameElement{
     ELEMENT type;
+    int dropped_money; // only for ELEMENT_DROPPED;
 };
 
 struct GameManager{
@@ -68,6 +69,8 @@ struct GameManager{
     int max_clients;
     int active_clients;
     int active_monsters;
+
+    int end_game;
 
     pthread_mutex_t mutex;
 
@@ -82,6 +85,7 @@ struct ServerSocket {
     int fd;
     int port;
     int active_clients;
+    int closed;
     struct sockaddr_in addr;
 
     // mutex
@@ -106,6 +110,11 @@ struct ClientHandlerThread {
 
 struct ClientHandlerStruct {
     struct ClientHandlerThread* client;
+    struct GameManager* game;
+};
+
+struct KeyboardHandlerStruct {
+    struct ServerSocket* server;
     struct GameManager* game;
 };
 

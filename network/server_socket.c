@@ -6,6 +6,7 @@ void serverSocketInit(struct ServerSocket* ss) {
     error_exit(serverSocket < 0, E_OPEN_SOCKET, freeServer, (void*)ss);
 
     ss->fd = serverSocket;
+    ss->closed = 1;
 
     int binding = bind(ss->fd, (struct sockaddr*) &(ss->addr), sizeof(ss->addr)) < 0;
     error_exit(binding, E_BIND_SOCKET, serverSocketClose, &ss);
@@ -19,7 +20,7 @@ void* serverSocketAccept(void* ss) {
     struct sockaddr_in clientAddress;
     socklen_t clientAddressLength = sizeof(clientAddress);
 
-    int clientSocket = accept(serverSocket->fd, (struct sockaddr *) &clientAddress, &clientAddressLength);
+    int clientSocket = accept(serverSocket->fd, (struct sockaddr *)&clientAddress, &clientAddressLength);
     error_info(clientSocket < 0, E_ACCEPT_SOCKET, closeThread, NULL);
 
     if (clientSocket > 0) {
@@ -36,11 +37,11 @@ void* serverSocketAccept(void* ss) {
 }
 
 void serverSocketListen(struct ServerSocket* serverSocket, struct GameManager* game) {
-    while (serverSocket != NULL) {
+    while (serverSocket != NULL || game->end_game) {
         struct ClientHandlerThread* newPlayer = NULL;
         pthread_create(&serverSocket->pth_listen, NULL, serverSocketAccept, (void*)serverSocket);
         pthread_join(serverSocket->pth_listen, (void*)&newPlayer);
-
+        
         if (newPlayer == NULL) {
             continue;
         }

@@ -24,6 +24,7 @@
 #include <ncurses.h>
 #include <wchar.h>
 #include <locale.h>
+#include <termios.h>
 
 // ============== NETWORK CONFIG =============
 #define HOST "localhost"
@@ -67,5 +68,9 @@
 #define PLAYER_3_Y      3
 #define PLAYER_4_X      40
 #define PLAYER_4_Y      5
+
+#define COIN_GIANT_VALUE    10
+#define COIN_SMALL_VALUE    1
+#define TREASURE_VALUE      50
 
 #endif // CONFIG_H

@@ -4,6 +4,7 @@
 #include "../config/config.h"
 #include "../config/type.h"
 #include "../game/logic/game_manager.h"
+#include "../util/server_util.h"
 #include "client_socket.h"
 
 // initialize server socket
