@@ -47,7 +47,7 @@ void* serverKeyboardHandler(void* arg) {
             }
             case 'b':
             case 'B': {
-                game->board[positionY][positionX].type = ELEMENT_MONSTER;
+                createMonster(game);
                 break;
             }
             default:

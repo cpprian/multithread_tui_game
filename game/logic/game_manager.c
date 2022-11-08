@@ -31,14 +31,18 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
         (playerType == TYPE_MONSTER && game->active_monsters == 4)) 
     {
         *valid = 0;
-        sendResponse(client->socket, CONNECTION_FULL);
+        if (playerType != TYPE_MONSTER) {
+            sendResponse(client->socket, CONNECTION_FULL);
+        }
         return NULL;
     } 
 
     struct PlayerData* player = returnPlayer(game, playerType);
     if (player == NULL) {
         *valid = 0;
-        sendResponse(client->socket, CONNECTION_FULL);
+        if (playerType == TYPE_MONSTER) {
+            sendResponse(client->socket, CONNECTION_FULL);
+        } 
         return NULL;
     }
 
@@ -65,7 +69,9 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
         findEmptyPosition(game, &positionX, &positionY);
         player->position_x = positionX;
         player->position_y = positionY;
+        player->playerElement = ELEMENT_MONSTER;
         game->board[player->position_y][player->position_x].type = ELEMENT_MONSTER;
+        return player;
     }
 
     sendResponse(client->socket, CONNECTION_SUCCESS);
@@ -116,7 +122,6 @@ void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, 
             if (game->monsters[i] != NULL && game->monsters[i]->thr == client->pth_player) {
                 free(game->monsters[i]);
                 game->monsters[i] = NULL;
-                sendResponse(client->socket, CONNECTION_DISCONNECTED);
                 return;
             }
         }
@@ -127,7 +132,7 @@ void sendMap(struct GameManager* game, struct ClientHandlerThread* client, struc
     
 }
 
-void movePlayer(struct GameManager*game, struct PlayerData* player, int positionX, int positionY) {
+void movePlayer(struct GameManager* game, struct PlayerData* player, int positionX, int positionY) {
     if (game->board[player->position_y + positionY][player->position_x + positionX].type == ELEMENT_WALL) {
         return;
     }
@@ -152,13 +157,17 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
         player->score_campsite += player->score_pocket;
         player->score_pocket = 0;
         return ELEMENT_CAMPSITE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_SMALL) {
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_SMALL
+                && player->playerElement != ELEMENT_MONSTER) {
         player->score_pocket += COIN_SMALL_VALUE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_GIANT) {
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_GIANT
+                && player->playerElement != ELEMENT_MONSTER) {
         player->score_pocket += COIN_GIANT_VALUE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_TREASURE) {
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_TREASURE
+                && player->playerElement != ELEMENT_MONSTER) {
         player->score_pocket += TREASURE_VALUE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_DROPPED) {
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_DROPPED
+                && player->playerElement != ELEMENT_MONSTER) {
         player->score_pocket += game->board[player->position_y][player->position_x].dropped_money;
         game->board[player->position_y][player->position_x].dropped_money = 0;
     } else if (game->board[player->position_y][player->position_x].type == ELEMENT_PLAYER_1 || 
@@ -167,27 +176,80 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
                game->board[player->position_y][player->position_x].type == ELEMENT_PLAYER_4) 
     {
         int toSetNewCoordinates = game->board[player->position_y][player->position_x].type - 1;
-        
-        int dropped = player->score_pocket + game->players[toSetNewCoordinates]->score_pocket;
-        game->board[player->position_y][player->position_x].dropped_money = dropped;
 
-        game->players[toSetNewCoordinates]->score_pocket = 0;
-        player->score_pocket = 0;
+        if (player->playerElement == ELEMENT_MONSTER) {
+            game->players[toSetNewCoordinates]->deaths++;
+            setPlayerCordinate(game->players[toSetNewCoordinates]);
+        } else {
+            int dropped = player->score_pocket + game->players[toSetNewCoordinates]->score_pocket;
+            game->board[player->position_y][player->position_x].dropped_money = dropped;
 
-        game->board[player->position_y][player->position_x].dropped_money = dropped;
-        setPlayerCordinate(player);
-        setPlayerCordinate(game->players[toSetNewCoordinates]);
+            game->players[toSetNewCoordinates]->score_pocket = 0;
+            player->score_pocket = 0;
 
-        game->board[player->position_y][player->position_x].type = player->playerElement;
-        game->board[game->players[toSetNewCoordinates]->position_y][game->players[toSetNewCoordinates]->position_x].type 
-                                                        = game->players[toSetNewCoordinates]->playerElement;
-        return ELEMENT_DROPPED;
+            game->board[player->position_y][player->position_x].dropped_money = dropped;
+            setPlayerCordinate(player);
+            setPlayerCordinate(game->players[toSetNewCoordinates]);
+
+            game->board[player->position_y][player->position_x].type = player->playerElement;
+            game->board[game->players[toSetNewCoordinates]->position_y][game->players[toSetNewCoordinates]->position_x].type 
+                                                            = game->players[toSetNewCoordinates]->playerElement;
+            return ELEMENT_DROPPED;
+        }
     }
     else if (game->board[player->position_y][player->position_x].type == ELEMENT_MONSTER) {
+        if (player->playerElement == ELEMENT_MONSTER) {
+            player->deaths++;
+            return ELEMENT_SPACE;
+        }
         player->deaths++;
         setPlayerCordinate(player);
         return ELEMENT_MONSTER;
     }
 
     return player->playerElement;
+}
+
+void createMonster(struct GameManager* game) {
+    struct ClientHandlerThread* client = (struct ClientHandlerThread*)calloc(1, sizeof(struct ClientHandlerThread));
+    struct ClientHandlerStruct* clientStruct = (struct ClientHandlerStruct*)calloc(1, sizeof(struct ClientHandlerStruct));
+    clientStruct->game = game;
+    clientStruct->client = client;
+
+    pthread_create(&client->pth_player, NULL, monsterThread, (void*)clientStruct);
+}
+
+void* monsterThread(void* arg) {
+    struct ClientHandlerStruct* clientStruct = (struct ClientHandlerStruct*)arg;
+    struct GameManager* game = clientStruct->game;
+    struct ClientHandlerThread* client = clientStruct->client;
+
+    struct PlayerData* monster = addNewPlayer(game, client, TYPE_MONSTER, (int*)1);
+    while (monster->deaths == 0 && game->end_game) {
+        moveMonster(game, monster);
+        usleep(100000);
+    }
+
+    removePlayer(game, client, TYPE_MONSTER);
+    free(clientStruct);
+    pthread_exit(NULL);
+}
+
+void moveMonster(struct GameManager* game, struct PlayerData* monster) {
+    int position = rand() % 4;
+
+    switch (position) {
+        case 0:
+            movePlayer(game, monster, 0, -1);
+            break;
+        case 1:
+            movePlayer(game, monster, 0, 1);
+            break;
+        case 2:
+            movePlayer(game, monster, -1, 0);
+            break;
+        case 3:
+            movePlayer(game, monster, 1, 0);
+            break;
+    }
 }

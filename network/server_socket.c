@@ -54,7 +54,6 @@ void serverSocketListen(struct ServerSocket* serverSocket, struct GameManager* g
             pthread_create(&newPlayer->pth_player, NULL, clientHandler, (void*)args);
         }
     }
-    printf("Server socket closed\n");
 }
 
 struct sockaddr_in createServerAddress(int port) {
