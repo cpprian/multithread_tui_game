@@ -2,7 +2,6 @@
 #define GAME_MANAGER_H
 
 #include "../../network/server_socket.h"
-#include "../player/player.h"
 #include "../map/map_handler.h"
 
 struct GameManager* createGameManager(int max_clients, int board_height, int board_width);
@@ -16,6 +15,8 @@ void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, 
 
 // TODO: implement
 void sendMap(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player);
+
 void movePlayer(struct GameManager* game, struct PlayerData* player, int positionX, int positionY);
+ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* player);
 
 #endif
