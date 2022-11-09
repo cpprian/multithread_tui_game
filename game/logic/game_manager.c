@@ -30,6 +30,8 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
     if ((playerType == TYPE_PLAYER && game->active_clients == 4) || 
         (playerType == TYPE_MONSTER && game->active_monsters == 4)) 
     {
+        printf("HELLO\n");
+        sleep(1);
         *valid = 0;
         if (playerType != TYPE_MONSTER) {
             sendResponse(client->socket, CONNECTION_FULL);
@@ -122,6 +124,11 @@ void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, 
             if (game->monsters[i] != NULL && game->monsters[i]->thr == client->pth_player) {
                 free(game->monsters[i]);
                 game->monsters[i] = NULL;
+                free(client);
+
+                pthread_mutex_lock(&game->mutex);
+                game->active_monsters--;
+                pthread_mutex_unlock(&game->mutex);
                 return;
             }
         }
@@ -211,6 +218,10 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
 }
 
 void createMonster(struct GameManager* game) {
+    if (game->active_monsters == MAX_CLIENTS) {
+        return;
+    }
+
     struct ClientHandlerThread* client = (struct ClientHandlerThread*)calloc(1, sizeof(struct ClientHandlerThread));
     struct ClientHandlerStruct* clientStruct = (struct ClientHandlerStruct*)calloc(1, sizeof(struct ClientHandlerStruct));
     clientStruct->game = game;
@@ -225,6 +236,7 @@ void* monsterThread(void* arg) {
     struct ClientHandlerThread* client = clientStruct->client;
 
     struct PlayerData* monster = addNewPlayer(game, client, TYPE_MONSTER, (int*)1);
+
     while (monster->deaths == 0 && game->end_game) {
         moveMonster(game, monster);
         usleep(100000);

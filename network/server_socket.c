@@ -158,7 +158,7 @@ void* clientHandler(void* args) {
 }
 
 int sendResponse(int socket, CONNECTION conn) {
-    char buffer[1] = {conn};
+    char buffer[1] = {(char)conn};
 
     return send(socket, buffer, sizeof(buffer), 0);
 }

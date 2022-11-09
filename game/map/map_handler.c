@@ -137,6 +137,8 @@ void* printBoard(void* g) {
     init_pair(ELEMENT_TREASURE, COLOR_WHITE, COLOR_YELLOW);
     init_pair(ELEMENT_DROPPED, COLOR_WHITE, COLOR_YELLOW);
 
+
+    long round = 0;
     while (game->end_game) {
         // print map ncurses
         for (int y = 0; y < game->board_height; y++) {
@@ -146,6 +148,51 @@ void* printBoard(void* g) {
                 mvprintw(y+5, x+5, "%s", returnElementTypeChar(game->board[y][x].type));
                 attroff(A_BOLD);
                 attroff(COLOR_PAIR(game->board[y][x].type));
+
+                if (game->board[y][x].type == ELEMENT_CAMPSITE) {
+                    attron(COLOR_PAIR(ELEMENT_PLAYER_1));
+                    attron(A_BOLD);
+                    mvprintw(SERVER_INFO_Y+2, SERVER_INFO_X, "Campsite X/Y: %d/%d", x, y);
+                    attroff(A_BOLD);
+                    attroff(COLOR_PAIR(ELEMENT_PLAYER_1));
+                }
+            }
+        }
+
+        // print Server's pid
+        attron(COLOR_PAIR(ELEMENT_PLAYER_1));
+        attron(A_BOLD);
+        mvprintw(SERVER_INFO_Y, SERVER_INFO_X, "Server's pid: %d", getpid());
+        mvprintw(SERVER_INFO_Y+1, SERVER_INFO_X, "Round number: %ld", round++);
+        mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X, "Parameter:");
+        mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X, "PID");
+        mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X, "Curr X/Y");
+        mvprintw(SERVER_INFO_Y+8, SERVER_INFO_X, "Deaths");
+        mvprintw(SERVER_INFO_Y+9, SERVER_INFO_X, "Coins");
+        mvprintw(SERVER_INFO_Y+10, SERVER_INFO_X+2, "carried");
+        mvprintw(SERVER_INFO_Y+11, SERVER_INFO_X+2, "brought");
+        attroff(A_BOLD);
+        attroff(COLOR_PAIR(ELEMENT_PLAYER_1));
+
+
+        // print players info   
+        for (int i = 0; i < game->max_clients; i++) {
+            if (game->players[i] != NULL) {
+                attron(A_BOLD);
+                mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X+12*(i+1), "Player %d:", i+1);
+                mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X+12*(i+1), "%d/%d", game->players[i]->position_x, game->players[i]->position_y);
+                mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X+12*(i+1), "%d", game->players[i]->deaths);
+                mvprintw(SERVER_INFO_Y+9, SERVER_INFO_X+12*(i+1), "%d", game->players[i]->score_pocket);
+                mvprintw(SERVER_INFO_Y+10, SERVER_INFO_X+12*(i+1), "%d", game->players[i]->score_campsite);
+                attroff(A_BOLD);
+            } else {
+                attron(A_BOLD);
+                mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X+12*(i+1), "Player %d:", i+1);
+                mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X+12*(i+1), "--/--");
+                mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X+12*(i+1), "-");
+                mvprintw(SERVER_INFO_Y+9, SERVER_INFO_X+12*(i+1), "0");
+                mvprintw(SERVER_INFO_Y+10, SERVER_INFO_X+12*(i+1), "0");
+                attroff(A_BOLD);
             }
         }
 

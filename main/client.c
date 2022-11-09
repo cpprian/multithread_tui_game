@@ -7,9 +7,9 @@ int main(int argc, char** argv) {
     char buffer[1] = {0};
     sendRequest(cs->fd, ACTION_JOIN, TYPE_PLAYER);
     recv(cs->fd, buffer, sizeof(buffer), 0);
-    int conn = buffer[0] - '0';
+    int conn = buffer[0];
     printf("Connection: %d", conn);
-    if (conn == CONNECTION_FULL) {
+    if (conn == -45) {
         printf("Server is full\n");
         clientSocketClose(cs);
         return EXIT_FAILURE;
