@@ -31,7 +31,8 @@
 #define PORT 8888
 
 // ============== GAME CONFIG =============
-#define MAX_CLIENTS     4
+#define MAX_CLIENTS         4
+#define MAX_PLAYER_VIEW     5
 
 #define BOARD_HEIGHT        25
 #define BOARD_WIDTH         52

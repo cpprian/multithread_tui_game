@@ -98,7 +98,7 @@ void* clientHandler(void* args) {
     int valid = 1;
 
     while(valid) {
-        int valRecv = recv(handleClient->socket, buffer, sizeof(buffer), 0);
+        int valRecv = recv(handleClient->socket, buffer, 2, 0);
         if (valRecv <= 0) {
             if (player != NULL) {
                 removePlayer(gameManager, handleClient, player->playerType);
@@ -112,7 +112,7 @@ void* clientHandler(void* args) {
         TYPE playerType = buffer[1] - '0';
 
         // clear buffer
-        memset(buffer, 0, sizeof(buffer));
+        memset(buffer, 0, 2);
 
         // choose action
         switch(action) {
@@ -158,7 +158,7 @@ void* clientHandler(void* args) {
 }
 
 int sendResponse(int socket, CONNECTION conn) {
-    char buffer[1] = {(char)conn};
+    char buffer[1] = {conn + '0'};
 
     return send(socket, buffer, sizeof(buffer), 0);
 }

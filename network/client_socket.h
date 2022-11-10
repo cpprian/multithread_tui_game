@@ -3,12 +3,8 @@
 
 #include "../config/config.h"
 #include "../config/type.h"
-
-struct ClientSocket {
-    int fd;
-    struct hostent* server_host;
-    struct sockaddr_in server_address;
-};
+#include "../game/logic/game_manager.h"
+#include "../game/map/map_handler.h"
 
 struct ClientSocket* createClient(const char* server_ip, int server_port);
 void freeClient(void* client_socket);

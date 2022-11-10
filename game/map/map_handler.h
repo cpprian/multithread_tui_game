@@ -9,6 +9,7 @@ void setPlayerCordinate(struct PlayerData* player);
 
 void loadMap(struct GameManager* game, char* filename);
 void* printBoard(void* game);
+void* printClientBoard(void* clientData);
 ELEMENT returnElementType(char* value);
 const char* returnElementTypeChar(ELEMENT value);
 

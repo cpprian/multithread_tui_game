@@ -138,7 +138,6 @@ void* printBoard(void* g) {
     init_pair(ELEMENT_DROPPED, COLOR_WHITE, COLOR_YELLOW);
 
 
-    long round = 0;
     while (game->end_game) {
         // print map ncurses
         for (int y = 0; y < game->board_height; y++) {
@@ -148,31 +147,18 @@ void* printBoard(void* g) {
                 mvprintw(y+5, x+5, "%s", returnElementTypeChar(game->board[y][x].type));
                 attroff(A_BOLD);
                 attroff(COLOR_PAIR(game->board[y][x].type));
-
-                if (game->board[y][x].type == ELEMENT_CAMPSITE) {
-                    attron(COLOR_PAIR(ELEMENT_PLAYER_1));
-                    attron(A_BOLD);
-                    mvprintw(SERVER_INFO_Y+2, SERVER_INFO_X, "Campsite X/Y: %d/%d", x, y);
-                    attroff(A_BOLD);
-                    attroff(COLOR_PAIR(ELEMENT_PLAYER_1));
-                }
             }
         }
 
         // print Server's pid
-        attron(COLOR_PAIR(ELEMENT_PLAYER_1));
         attron(A_BOLD);
-        mvprintw(SERVER_INFO_Y, SERVER_INFO_X, "Server's pid: %d", getpid());
-        mvprintw(SERVER_INFO_Y+1, SERVER_INFO_X, "Round number: %ld", round++);
         mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X, "Parameter:");
-        mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X, "PID");
-        mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X, "Curr X/Y");
-        mvprintw(SERVER_INFO_Y+8, SERVER_INFO_X, "Deaths");
-        mvprintw(SERVER_INFO_Y+9, SERVER_INFO_X, "Coins");
-        mvprintw(SERVER_INFO_Y+10, SERVER_INFO_X+2, "carried");
-        mvprintw(SERVER_INFO_Y+11, SERVER_INFO_X+2, "brought");
+        mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X, "Curr X/Y");
+        mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X, "Deaths");
+        mvprintw(SERVER_INFO_Y+8, SERVER_INFO_X, "Coins");
+        mvprintw(SERVER_INFO_Y+9, SERVER_INFO_X+2, "carried");
+        mvprintw(SERVER_INFO_Y+10, SERVER_INFO_X+2, "brought");
         attroff(A_BOLD);
-        attroff(COLOR_PAIR(ELEMENT_PLAYER_1));
 
 
         // print players info   
@@ -203,4 +189,85 @@ void* printBoard(void* g) {
     }
     endwin();
     return NULL;
+}
+
+void* printClientBoard(void* cthr) {
+    int gameInfo[6][5];
+    struct ClientSocket* client = (struct ClientSocket*)cthr;
+
+    setlocale(LC_ALL, "");
+    initscr();
+    start_color();
+    init_pair(ELEMENT_PLAYER_1, COLOR_WHITE, COLOR_MAGENTA);
+    init_pair(ELEMENT_PLAYER_2, COLOR_WHITE, COLOR_MAGENTA);
+    init_pair(ELEMENT_PLAYER_3, COLOR_WHITE, COLOR_MAGENTA);
+    init_pair(ELEMENT_PLAYER_4, COLOR_WHITE, COLOR_MAGENTA);
+    init_pair(ELEMENT_MONSTER, COLOR_RED, COLOR_BLACK);
+    init_pair(ELEMENT_CAMPSITE, COLOR_WHITE, COLOR_BLUE);
+    init_pair(ELEMENT_BUSH, COLOR_GREEN, COLOR_BLACK);
+    init_pair(ELEMENT_SPACE, COLOR_BLACK, COLOR_BLACK);
+    init_pair(ELEMENT_WALL, COLOR_WHITE, COLOR_WHITE);
+    init_pair(ELEMENT_COIN_SMALL, COLOR_WHITE, COLOR_YELLOW);
+    init_pair(ELEMENT_COIN_GIANT, COLOR_WHITE, COLOR_YELLOW);
+    init_pair(ELEMENT_TREASURE, COLOR_WHITE, COLOR_YELLOW);
+    init_pair(ELEMENT_DROPPED, COLOR_WHITE, COLOR_YELLOW);
+
+    int positionX = 0;
+    int positionY = 0;
+    int playerName = 0;
+    int element, a, b = 0;
+    int i = 0;
+    while (1) {
+        if (sendRequest(client->fd, ACTION_SEND_MAP, TYPE_PLAYER) == -1) {
+            printf("Error while sending request\n");
+            break;
+        }
+        if (recv(client->fd, gameInfo, sizeof(gameInfo), 0) == -1) {
+            printf("Error while receiving game info\n");
+            break;
+        }
+        positionX = gameInfo[0][0];
+        positionY = gameInfo[0][1];
+
+        if (i == 0) {
+            playerName = gameInfo[3][2];
+            i++;
+        }
+
+        // print map ncurses
+        for (int y = 1; y < 6; y++) {
+            for (int x = 0; x < 5; x++) {
+                element = gameInfo[y][x];
+                a = -2 + x;
+                b = -3 + y;
+                attron(COLOR_PAIR(element));
+                attron(A_BOLD);
+                mvprintw(positionY+5+b, positionX+5+a, "%s", returnElementTypeChar(element));
+                attroff(A_BOLD);
+                attroff(COLOR_PAIR(element));
+            }
+        }
+
+        attron(A_BOLD);
+        mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X, "Parameter:");
+        mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X, "Curr X/Y");
+        mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X, "Deaths");
+        mvprintw(SERVER_INFO_Y+8, SERVER_INFO_X, "Coins");
+        mvprintw(SERVER_INFO_Y+9, SERVER_INFO_X+2, "carried");
+        mvprintw(SERVER_INFO_Y+10, SERVER_INFO_X+2, "brought");
+        mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X+12, "Player %d:", playerName);
+        mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X+12, "%d/%d",gameInfo[0][0], gameInfo[0][1]);
+        mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X+12, "%d", gameInfo[0][4]);
+        mvprintw(SERVER_INFO_Y+9, SERVER_INFO_X+12, "%d", gameInfo[0][2]);
+        mvprintw(SERVER_INFO_Y+10, SERVER_INFO_X+12, "%d", gameInfo[0][3]);
+        attroff(A_BOLD);
+
+        // clear screen 
+        refresh();
+        usleep(50000);
+        clear();
+    }
+
+    endwin();
+    pthread_exit(NULL);
 }
