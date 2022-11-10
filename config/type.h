@@ -101,6 +101,12 @@ struct ServerSocket {
     pthread_t pth_listen;
 };
 
+struct ClientSocket {
+    int fd;
+    struct hostent* server_host;
+    struct sockaddr_in server_address;
+};
+
 // server handler to send and receive data from clients
 struct ClientHandlerThread {
     int socket;

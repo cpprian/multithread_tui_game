@@ -26,7 +26,7 @@ void serverSocketClose(void* ss);
 void* serverSocketAccept(void* ss);
 
 // listen for new client connections
-void serverSocketListen(struct ServerSocket* serverSocket, struct GameManager* game);
+void serverSocketListen(struct ServerSocket* serverSocket,struct GameManager* game);
 
 void* clientHandler(void* args);  
 

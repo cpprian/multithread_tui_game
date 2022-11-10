@@ -7,14 +7,13 @@ int main(int argc, char** argv) {
     char buffer[1] = {0};
     sendRequest(cs->fd, ACTION_JOIN, TYPE_PLAYER);
     recv(cs->fd, buffer, sizeof(buffer), 0);
-    int conn = buffer[0] - '0';
-    printf("Connection: %d", conn);
+    int conn = (int)buffer[0];
     if (conn == CONNECTION_FULL) {
         printf("Server is full\n");
         clientSocketClose(cs);
         return EXIT_FAILURE;
     } else if (conn == CONNECTION_FAILURE) {
-        printf("Can't connect\n");
+        printf("Disconnected\n");
         clientSocketClose(cs);
         return EXIT_FAILURE;
     }
@@ -25,7 +24,9 @@ int main(int argc, char** argv) {
     newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-    // TODO: render map thread
+    // render map thread
+    pthread_t boardPrinter;
+    pthread_create(&boardPrinter, NULL, printClientBoard, (void*)cs);
 
     int valid = 1;
     while(valid > 0) {

@@ -36,18 +36,17 @@ struct ClientSocket* createClient(const char* server_ip, int server_port) {
 }
 
 void freeClient(void* cs) {
-    struct ClientSocket* client_socket = (struct ClientSocket*)cs;
-    free(client_socket);
+    free((struct ClientSocket*)cs);
 }
 
 void clientSocketClose(void* cs) {
     struct ClientSocket* client_socket = (struct ClientSocket*)cs;
     close(client_socket->fd);
-    freeClient(cs);
+    free(client_socket);
 }
 
 int sendRequest(int socket, ACTION action, TYPE playerType) {
-    char buffer[2] = {action + '0', playerType + '0'};
+    char buffer[2] = { action + '0', playerType + '0'};
 
-    return send(socket, buffer, sizeof(buffer), 0);
+    int sent = send(socket, buffer, sizeof(buffer), 0);
 }

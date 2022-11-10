@@ -122,6 +122,11 @@ void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, 
             if (game->monsters[i] != NULL && game->monsters[i]->thr == client->pth_player) {
                 free(game->monsters[i]);
                 game->monsters[i] = NULL;
+                free(client);
+
+                pthread_mutex_lock(&game->mutex);
+                game->active_monsters--;
+                pthread_mutex_unlock(&game->mutex);
                 return;
             }
         }
@@ -129,7 +134,31 @@ void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, 
 }
 
 void sendMap(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) { 
-    
+    int gameInfo[6][5];
+
+    gameInfo[0][0] = player->position_x;
+    gameInfo[0][1] = player->position_y;
+    gameInfo[0][2] = player->score_pocket;
+    gameInfo[0][3] = player->score_campsite;
+    gameInfo[0][4] = player->deaths;
+
+    int positionX = 0;
+    int positionY = 0;
+    for (int y = 1; y < 6; y++) {
+        for (int x = 0; x < 5; x++) {
+            positionX = player->position_x - 2 + x;
+            positionY = player->position_y - 3 + y;
+            if (positionX < 0 || positionX >= BOARD_WIDTH || 
+                positionY < 0 || positionY >= BOARD_HEIGHT) {
+                gameInfo[y][x] = ELEMENT_SPACE;
+                continue;
+            }
+
+            gameInfo[y][x] = game->board[positionY][positionX].type;
+        }
+    }
+
+    send(client->socket, &gameInfo, sizeof(gameInfo), 0);
 }
 
 void movePlayer(struct GameManager* game, struct PlayerData* player, int positionX, int positionY) {
@@ -211,6 +240,10 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
 }
 
 void createMonster(struct GameManager* game) {
+    if (game->active_monsters == MAX_CLIENTS) {
+        return;
+    }
+
     struct ClientHandlerThread* client = (struct ClientHandlerThread*)calloc(1, sizeof(struct ClientHandlerThread));
     struct ClientHandlerStruct* clientStruct = (struct ClientHandlerStruct*)calloc(1, sizeof(struct ClientHandlerStruct));
     clientStruct->game = game;
@@ -225,6 +258,7 @@ void* monsterThread(void* arg) {
     struct ClientHandlerThread* client = clientStruct->client;
 
     struct PlayerData* monster = addNewPlayer(game, client, TYPE_MONSTER, (int*)1);
+
     while (monster->deaths == 0 && game->end_game) {
         moveMonster(game, monster);
         usleep(100000);
