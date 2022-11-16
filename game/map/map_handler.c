@@ -152,6 +152,7 @@ void* printBoard(void* g) {
 
         // print Server's pid
         attron(A_BOLD);
+        mvprintw(SERVER_INFO_Y+4, SERVER_INFO_X, "Round: %ld", game->round++);
         mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X, "Parameter:");
         mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X, "Curr X/Y");
         mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X, "Deaths");
@@ -192,7 +193,7 @@ void* printBoard(void* g) {
 }
 
 void* printClientBoard(void* cthr) {
-    int gameInfo[6][5];
+    int gameInfo[6][6];
     struct ClientSocket* client = (struct ClientSocket*)cthr;
 
     setlocale(LC_ALL, "");
@@ -249,6 +250,7 @@ void* printClientBoard(void* cthr) {
         }
 
         attron(A_BOLD);
+        mvprintw(SERVER_INFO_Y+4, SERVER_INFO_X, "Round: %d", gameInfo[0][5]);
         mvprintw(SERVER_INFO_Y+5, SERVER_INFO_X, "Parameter:");
         mvprintw(SERVER_INFO_Y+6, SERVER_INFO_X, "Curr X/Y");
         mvprintw(SERVER_INFO_Y+7, SERVER_INFO_X, "Deaths");

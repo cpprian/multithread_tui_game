@@ -1,10 +1,10 @@
 #ifndef CLIENT_SOCKET_H
 #define CLIENT_SOCKET_H
 
-#include "../config/config.h"
-#include "../config/type.h"
-#include "../game/logic/game_manager.h"
-#include "../game/map/map_handler.h"
+#include "config.h"
+#include "type.h"
+#include "game_manager.h"
+#include "map_handler.h"
 
 struct ClientSocket* createClient(const char* server_ip, int server_port);
 void freeClient(void* client_socket);

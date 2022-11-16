@@ -12,13 +12,13 @@
 #include <sys/socket.h>
 
 // ============ ERROR INCLUDE =============
-#include "../error/error_wrapper.h"
-#include "../error/message.h"
+#include "error_wrapper.h"
+#include "message.h"
 
 // ============ THREAD INCLUDE =============
 #include <pthread.h>
 #include <sys/wait.h>
-#include "../util/thread_util.h"
+#include "thread_util.h"
 
 // ============ NCURSES INCLUDE =============
 #include <ncurses.h>

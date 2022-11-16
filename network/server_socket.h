@@ -1,10 +1,10 @@
 #ifndef SERVER_SOCKET_H
 #define SERVER_SOCKET_H
 
-#include "../config/config.h"
-#include "../config/type.h"
-#include "../game/logic/game_manager.h"
-#include "../util/server_util.h"
+#include "config.h"
+#include "type.h"
+#include "game_manager.h"
+#include "server_util.h"
 #include "client_socket.h"
 
 // initialize server socket

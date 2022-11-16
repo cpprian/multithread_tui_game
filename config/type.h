@@ -71,6 +71,7 @@ struct GameManager{
     int active_monsters;
 
     int end_game;
+    long round;
 
     pthread_mutex_t mutex;
 

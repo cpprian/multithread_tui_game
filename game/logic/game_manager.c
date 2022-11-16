@@ -6,6 +6,7 @@ struct GameManager* createGameManager(int max_clients, int board_height, int boa
     game->board_height = board_height;
     game->board_width = board_width;
     game->active_clients = 0;
+    game->round = 0;
     game->active_monsters = 0;
     game->end_game = 1;
 
@@ -40,7 +41,7 @@ struct PlayerData* addNewPlayer(struct GameManager* game, struct ClientHandlerTh
     struct PlayerData* player = returnPlayer(game, playerType);
     if (player == NULL) {
         *valid = 0;
-        if (playerType == TYPE_MONSTER) {
+        if (playerType != TYPE_MONSTER) {
             sendResponse(client->socket, CONNECTION_FULL);
         } 
         return NULL;
@@ -134,13 +135,14 @@ void removePlayer(struct GameManager* game, struct ClientHandlerThread* client, 
 }
 
 void sendMap(struct GameManager* game, struct ClientHandlerThread* client, struct PlayerData* player) { 
-    int gameInfo[6][5];
+    int gameInfo[6][6];
 
     gameInfo[0][0] = player->position_x;
     gameInfo[0][1] = player->position_y;
     gameInfo[0][2] = player->score_pocket;
     gameInfo[0][3] = player->score_campsite;
     gameInfo[0][4] = player->deaths;
+    gameInfo[0][5] = game->round;
 
     int positionX = 0;
     int positionY = 0;
@@ -165,12 +167,30 @@ void movePlayer(struct GameManager* game, struct PlayerData* player, int positio
     if (game->board[player->position_y + positionY][player->position_x + positionX].type == ELEMENT_WALL) {
         return;
     }
-    if (player->delay-- > 0) {
+
+    if (player->delay > 1) {
+        player->delay--;
         return;
     }
 
     if (game->board[player->position_y][player->position_x].type == player->playerElement) {
-        game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
+        if (player->playerElement == ELEMENT_MONSTER && player->score_pocket > 0) {
+            if (player->score_pocket == COIN_SMALL_VALUE) {
+                game->board[player->position_y][player->position_x].type = ELEMENT_COIN_SMALL;
+            } else if (player->score_pocket == COIN_GIANT_VALUE) {
+                game->board[player->position_y][player->position_x].type = ELEMENT_COIN_GIANT;
+            } else if (player->score_pocket == TREASURE_VALUE) {
+                game->board[player->position_y][player->position_x].type = ELEMENT_TREASURE;
+            } else if (player->score_pocket > 0) {
+                game->board[player->position_y][player->position_x].type = ELEMENT_DROPPED;
+            }
+            player->score_pocket = 0;
+        } else if (player->delay == 1) {
+            player->delay = 0;
+            game->board[player->position_y][player->position_x].type = ELEMENT_BUSH;
+        } else {
+            game->board[player->position_y][player->position_x].type = ELEMENT_SPACE;
+        }
     }
 
     player->position_x += positionX;
@@ -180,25 +200,41 @@ void movePlayer(struct GameManager* game, struct PlayerData* player, int positio
 
 ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* player) {
     if (game->board[player->position_y][player->position_x].type == ELEMENT_BUSH) {
-        player->delay = 1;
-        return ELEMENT_BUSH;
+        player->delay = 2;
     } else if (game->board[player->position_y][player->position_x].type == ELEMENT_CAMPSITE) {
-        player->score_campsite += player->score_pocket;
-        player->score_pocket = 0;
+        if (player->playerElement != ELEMENT_MONSTER) {
+            player->score_campsite += player->score_pocket;
+            player->score_pocket = 0;
+        }
         return ELEMENT_CAMPSITE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_SMALL
-                && player->playerElement != ELEMENT_MONSTER) {
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_SMALL) {
         player->score_pocket += COIN_SMALL_VALUE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_GIANT
-                && player->playerElement != ELEMENT_MONSTER) {
+        if (player->playerElement != ELEMENT_MONSTER) {
+            game->board[player->position_y][player->position_x].dropped_money = 0;
+        } else {
+            game->board[player->position_y][player->position_x].dropped_money = COIN_SMALL_VALUE;
+        }
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_COIN_GIANT) {
         player->score_pocket += COIN_GIANT_VALUE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_TREASURE
-                && player->playerElement != ELEMENT_MONSTER) {
+        if (player->playerElement != ELEMENT_MONSTER) {
+            game->board[player->position_y][player->position_x].dropped_money = 0;
+        } else {
+            game->board[player->position_y][player->position_x].dropped_money = COIN_GIANT_VALUE;
+        }
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_TREASURE) {
         player->score_pocket += TREASURE_VALUE;
-    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_DROPPED
-                && player->playerElement != ELEMENT_MONSTER) {
+        if (player->playerElement != ELEMENT_MONSTER) {
+            game->board[player->position_y][player->position_x].dropped_money = 0;
+        } else {
+            game->board[player->position_y][player->position_x].dropped_money = TREASURE_VALUE;
+        }
+    } else if (game->board[player->position_y][player->position_x].type == ELEMENT_DROPPED) {
         player->score_pocket += game->board[player->position_y][player->position_x].dropped_money;
-        game->board[player->position_y][player->position_x].dropped_money = 0;
+        if (player->playerElement != ELEMENT_MONSTER) {
+            game->board[player->position_y][player->position_x].dropped_money = 0;
+        } else {
+            game->board[player->position_y][player->position_x].dropped_money = game->board[player->position_y][player->position_x].dropped_money;
+        }
     } else if (game->board[player->position_y][player->position_x].type == ELEMENT_PLAYER_1 || 
                 game->board[player->position_y][player->position_x].type == ELEMENT_PLAYER_2 || 
                game->board[player->position_y][player->position_x].type == ELEMENT_PLAYER_3 || 
@@ -207,8 +243,16 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
         int toSetNewCoordinates = game->board[player->position_y][player->position_x].type - 1;
 
         if (player->playerElement == ELEMENT_MONSTER) {
+            if (game->players[toSetNewCoordinates]->score_pocket > 0) {
+                player->score_pocket += game->players[toSetNewCoordinates]->score_pocket;
+                game->board[game->players[toSetNewCoordinates]->position_y][game->players[toSetNewCoordinates]->position_x].type = ELEMENT_DROPPED;
+                game->board[game->players[toSetNewCoordinates]->position_y][game->players[toSetNewCoordinates]->position_x].dropped_money = player->score_pocket;
+                game->players[toSetNewCoordinates]->score_pocket = 0;
+            }
             game->players[toSetNewCoordinates]->deaths++;
             setPlayerCordinate(game->players[toSetNewCoordinates]);
+            game->board[game->players[toSetNewCoordinates]->position_y][game->players[toSetNewCoordinates]->position_x].type = 
+                                                            game->players[toSetNewCoordinates]->playerElement;
         } else {
             int dropped = player->score_pocket + game->players[toSetNewCoordinates]->score_pocket;
             game->board[player->position_y][player->position_x].dropped_money = dropped;
@@ -216,7 +260,6 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
             game->players[toSetNewCoordinates]->score_pocket = 0;
             player->score_pocket = 0;
 
-            game->board[player->position_y][player->position_x].dropped_money = dropped;
             setPlayerCordinate(player);
             setPlayerCordinate(game->players[toSetNewCoordinates]);
 
@@ -231,8 +274,15 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
             player->deaths++;
             return ELEMENT_SPACE;
         }
+        if (player->score_pocket > 0) {
+            game->board[player->position_y][player->position_x].type = ELEMENT_DROPPED;
+            game->board[player->position_y][player->position_x].dropped_money = player->score_pocket;
+            player->score_pocket = 0;
+        }
+
         player->deaths++;
         setPlayerCordinate(player);
+        game->board[player->position_y][player->position_x].type = player->playerElement;
         return ELEMENT_MONSTER;
     }
 
@@ -270,20 +320,131 @@ void* monsterThread(void* arg) {
 }
 
 void moveMonster(struct GameManager* game, struct PlayerData* monster) {
-    int position = rand() % 4;
+    int position = isPlayerInRange(game, monster);
+
+    if (position == -1) {
+        position = rand() % 6;
+    }
 
     switch (position) {
-        case 0:
+        case 0: // up
             movePlayer(game, monster, 0, -1);
             break;
-        case 1:
+        case 1: // down
             movePlayer(game, monster, 0, 1);
             break;
-        case 2:
+        case 2: // left
             movePlayer(game, monster, -1, 0);
             break;
-        case 3:
+        case 3: // right
             movePlayer(game, monster, 1, 0);
             break;
+        default:
+            break;
     }
+}
+
+int isPlayerInRange(struct GameManager* game, struct PlayerData* monster) {
+    int positionX = 0;
+    int positionY = 0;
+    int choice = 0;
+    
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->players[i] != NULL) {
+            positionX = game->players[i]->position_x - monster->position_x;
+            positionY = game->players[i]->position_y - monster->position_y;
+
+            if (abs(positionX) <= 2 && abs(positionY) <= 2) {
+                if (positionX == 0 && positionY == 0) {
+                    return -1;
+                } else if (positionX == 0 && positionY < 0) {
+                    if (game->board[monster->position_y - 1][monster->position_x].type == ELEMENT_WALL) {
+                        return -1;
+                    }
+                    return 0;
+                } else if (positionX == 0 && positionY > 0) {
+                    if (game->board[monster->position_y + 1][monster->position_x].type == ELEMENT_WALL) {
+                        return -1;
+                    }
+                    return 1;
+                } else if (positionX < 0 && positionY == 0) {
+                    if (game->board[monster->position_y][monster->position_x - 1].type == ELEMENT_WALL) {
+                        return -1;
+                    }
+                    return 2;
+                } else if (positionX > 0 && positionY == 0) {
+                    if (game->board[monster->position_y][monster->position_x + 1].type == ELEMENT_WALL) {
+                        return -1;
+                    }
+                    return 3;
+                } else if (positionX > 0 && positionY > 0) {
+                    choice = rand() % 2; 
+
+                    if (game->board[monster->position_y+1][monster->position_x + 1].type == ELEMENT_WALL ||
+                        game->board[monster->position_y+1][monster->position_x].type == ELEMENT_WALL) {
+                        return -1;
+                    } 
+
+                    if (choice == 0) {
+                        return 1;
+                    } else {
+                        if (game->board[monster->position_y][monster->position_x + 1].type == ELEMENT_WALL) {
+                            return 1;
+                        }
+                        return 3;
+                    }      
+                } else if (positionX > 0 && positionY < 0) {
+                    choice = rand() % 2;
+
+                    if (game->board[monster->position_y-1][monster->position_x + 1].type == ELEMENT_WALL ||
+                        game->board[monster->position_y-1][monster->position_x].type == ELEMENT_WALL) {
+                        return -1;
+                    }
+
+                    if (choice == 0) {
+                        return 0;
+                    } else {
+                        if (game->board[monster->position_y][monster->position_x + 1].type == ELEMENT_WALL) {
+                            return 0;
+                        }
+                        return 3;
+                    }
+                } else if (positionX < 0 && positionY > 0) {
+                    choice = rand() % 2;
+
+                    if (game->board[monster->position_y+1][monster->position_x - 1].type == ELEMENT_WALL ||
+                        game->board[monster->position_y+1][monster->position_x].type == ELEMENT_WALL) {
+                        return -1;
+                    }
+
+                    if (choice == 0) {
+                        return 1;
+                    } else {
+                        if (game->board[monster->position_y][monster->position_x - 1].type == ELEMENT_WALL) {
+                            return 1;
+                        }
+                        return 2;
+                    }
+                } else if (positionX < 0 && positionY < 0) {
+                    choice = rand() % 2;
+
+                    if (game->board[monster->position_y-1][monster->position_x - 1].type == ELEMENT_WALL ||
+                        game->board[monster->position_y-1][monster->position_x].type == ELEMENT_WALL) {
+                        return -1;
+                    }
+
+                    if (choice == 0) {
+                        return 0;
+                    } else {
+                        if (game->board[monster->position_y][monster->position_x - 1].type == ELEMENT_WALL) {
+                            return 0;
+                        }
+                        return 2;
+                    }
+                }
+            }
+        }
+    }
+
+    return -1;
 }

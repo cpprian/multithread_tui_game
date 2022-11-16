@@ -1,7 +1,7 @@
 #ifndef MAP_HANDLER_H
 #define MAP_LOADER_H
 
-#include "../logic/game_manager.h"
+#include "game_manager.h"
 #include "ncurses.h"
 
 void findEmptyPosition(struct GameManager* game, int* positionX, int* positionY);

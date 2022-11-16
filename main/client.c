@@ -1,4 +1,4 @@
-#include "../network/client_socket.h"
+#include "client_socket.h"
 
 int main(int argc, char** argv) {
     struct ClientSocket* cs = createClient(HOST, PORT);

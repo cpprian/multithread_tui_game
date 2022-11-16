@@ -1,8 +1,8 @@
 #ifndef GAME_MANAGER_H
 #define GAME_MANAGER_H
 
-#include "../../network/server_socket.h"
-#include "../map/map_handler.h"
+#include "server_socket.h"
+#include "map_handler.h"
 
 struct GameManager* createGameManager(int max_clients, int board_height, int board_width);
 void removeGameManager(struct GameManager* game);
@@ -22,5 +22,6 @@ ELEMENT returnPlayerCollision(struct GameManager* game, struct PlayerData* playe
 void createMonster(struct GameManager* game);
 void* monsterThread(void* arg);
 void moveMonster(struct GameManager* game, struct PlayerData* monster);
+int isPlayerInRange(struct GameManager* game, struct PlayerData* monster);
 
 #endif // GAME_MANAGER_H
